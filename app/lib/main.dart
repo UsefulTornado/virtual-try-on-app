@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -40,71 +42,118 @@ class _MyHomePageState extends State<MyHomePage> {
   void _tryImg(int index) { // временно, чтобы ничего не ломалось
     print(index);
 
-    setState(() {
-      selectedImage = XFile( "assets/images/img$index.jpg"); //проверка, как обновляется фото
-    });
+    // setState(() {
+    //   selectedImage = XFile( "assets/images/img$index.jpg"); //проверка, как обновляется фото
+    // });
   }
 
 // загрузка фото из галереи
-  XFile? selectedImage;
-  void pickImageFromGallery() async {
-    final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
-    if (pickedImage != null) {
-      setState(() {
-        selectedImage = pickedImage;
-      });
-    }
-  }
+//   XFile? selectedImage;
+//   void pickImageFromGallery() async {
+//     final picker = ImagePicker();
+//     final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
+//     if (pickedImage != null) {
+//       setState(() {
+//         selectedImage = pickedImage;
+//       });
+//     }
+//   }
 
-  void _tryImgg(int id) async {
-    final url = Uri.parse('http://example.com/upload'); // Замените на свой URL сервера
-    final request = http.MultipartRequest('POST', url);
-    request.files.add(await http.MultipartFile.fromPath('image',  selectedImage!.path)); //заполняем фото человека
-    request.fields['id'] = id.toString(); //заполняем id
 
-    final response = await request.send(); //отправляем
+  void _tryImg1(String clothesId) async {
+    String newPersonId = '';
+    // Создание тела запроса с изображением в байтовом виде
+    Map<String, dynamic> requestBody = {
+      'person_image_id': personId,
+      'clothes_image_id': clothesId,
+    };
 
+    // Отправка POST-запроса на сервер
+    http.Response response = await http.post(
+      Uri.parse('[host:port]/api/style_image'),
+      body: jsonEncode(requestBody),
+    );
+
+    // Обработка ответа от сервера
     if (response.statusCode == 200) {
-      // Обработка успешной отправки фотографии на сервер
-      print('Фотография успешно отправлена на сервер');
+      Map<String, dynamic> responseData = jsonDecode(response.body);
+      setState(() {
+        newPersonId = responseData['id'];
+      });
+      print('Изображение успешно отправлено на сервер. ID сгенерированного изображения: $newPersonId');
     } else {
-      // Обработка ошибки при отправке фотографии на сервер
-      print('Ошибка при отправке фотографии на сервер');
+      print('Ошибка при отправке изображения на сервер');
     }
+
+
     Timer.periodic(Duration(seconds: 20), (timer) {
       // Вызов другой функции
-      print("запрос в базу о готовности"); //если готово вызываем функцию downloadImage()
+      print("запрос в базу о готовности"); //если готово вызываем функцию downloadImage(newPersonId)
     });
   }
 
 
 
-  void downloadImage() async {
-    final response = await http.get(Uri.parse('http://example.com/download'));
+  void downloadImage(String newPersonId) async {
+    // Создание тела запроса с изображением в байтовом виде
+    Map<String, dynamic> requestBody = {
+      'id': newPersonId,
+    };
 
+    // Отправка POST-запроса на сервер
+    http.Response response = await http.post(
+      Uri.parse(' [host:port]/api/get_image'),
+      body: jsonEncode(requestBody),
+    );
+
+    // Обработка ответа от сервера
     if (response.statusCode == 200) {
-      // Обработка успешного получения фотографии с сервера
-      final bytes = response.bodyBytes;
-      //для преобразования байтов в XFile
-      Directory tempDir = await getTemporaryDirectory();
-      String tempPath = tempDir.path;
-      String tempFilePath = '$tempPath/temp_file.bin';
-
-      File tempFile = File(tempFilePath);
-      await tempFile.writeAsBytes(bytes);
+      final modifiedImageBytes = response.bodyBytes;
       setState(() {
-        selectedImage = XFile(tempFilePath);
+        containerImage = Image.memory(modifiedImageBytes);
       });
-
-      // Дальнейшая обработка полученных байтов фотографии
-      print('Фотография успешно получена с сервера');
+      print('Изображение успешно обработано');
     } else {
-      // Обработка ошибки при получении фотографии с сервера
-      print('Ошибка при получении фотографии с сервера');
+      print('Ошибка при получении');
     }
   }
 
+  Uint8List? imageBytes;
+  Image? containerImage;
+  String personId = '';
+  void pickImageFromGallery1() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
+    if (pickedImage != null) {
+      final imageBytes = await pickedImage.readAsBytes();
+      setState(() {
+        containerImage = Image.memory(imageBytes);
+      });
+    }
+
+    // Создание тела запроса с изображением в байтовом виде
+    Map<String, dynamic> requestBody = {
+      'image': base64Encode(imageBytes as List<int>),
+    };
+
+    // Отправка POST-запроса на сервер
+    http.Response response = await http.post(
+      Uri.parse('[host:port]/api/style_image'),
+      body: jsonEncode(requestBody),
+      headers: {'Content-Type': 'image/png'},
+    );
+
+    // Обработка ответа от сервера
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseData = jsonDecode(response.body);
+      setState(() {
+        personId = responseData['id'];
+      });
+      print('Изображение успешно отправлено на сервер. ID изображения: $personId');
+    } else {
+      print('Ошибка при отправке изображения на сервер');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: 2,
                   ),
                 ),
-                child: selectedImage != null ? Image.network(selectedImage!.path, fit:BoxFit.scaleDown) : const Text('Photo not selected'),
+                child: containerImage ?? const Text('Photo not selected'),
                 // child: selectedImage != null ? Image.network(selectedImage!.path, fit:BoxFit.scaleDown) : const Text('Photo not selected'),
               ),
               Container(
@@ -153,7 +202,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: ButtonStyle(
                     foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                   ),
-                  onPressed:  pickImageFromGallery, //_uploadPhoto,
+                  onPressed:  pickImageFromGallery1, //_uploadPhoto,
                   child: const Text('Upload Photo'),
                 ),
               ),
