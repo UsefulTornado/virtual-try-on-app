@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:async';
+import 'package:path_provider/path_provider.dart';
 
 
 void main() {
@@ -34,33 +36,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void _uploadPhoto() { // поменять функцию
+
+  void _tryImg(int index) { // временно, чтобы ничего не ломалось
+    print(index);
+
     setState(() {
-      http.get(Uri.parse('http://iocontrol.ru/api/sendData/alina/bulb_1/1')).then((response) {
-        print("Response status: ${response.statusCode}");
-        print("Response body: ${response.body}");
-      }).catchError((error){
-        print("Error: $error");
-      });
+      selectedImage = XFile( "assets/images/img$index.jpg"); //проверка, как обновляется фото
     });
   }
 
-  void _tryImg(int index) { // поменять функцию
-    setState(() {
-      print(index);
-      http.get(Uri.parse('http://iocontrol.ru/api/sendData/alina/bulb_1/1')).then((response) {
-        print("Response status: ${response.statusCode}");
-        print("Response body: ${response.body}");
-      }).catchError((error){
-        print("Error: $error");
-      });
-    });
-  }
-
-  // загрузка фото из галереи
-
+// загрузка фото из галереи
   XFile? selectedImage;
-  Future<void> pickImageFromGallery() async {
+  void pickImageFromGallery() async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
     if (pickedImage != null) {
@@ -70,27 +57,53 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Future<void> uploadImage() async {
-  //   if (selectedImage == null) {
-  //     // Обработка случая, когда фотография не выбрана
-  //     return;
-  //   }
-  //
-  //   final url = Uri.parse('http://example.com/upload'); // Замените на свой URL сервера
-  //   final request = http.MultipartRequest('POST', url);
-  //   request.files.add(await http.MultipartFile.fromPath('image', selectedImage!.path));
-  //
-  //   final response = await request.send();
-  //
-  //   if (response.statusCode == 200) {
-  //     // Обработка успешной отправки фотографии на сервер
-  //     print('Фотография успешно отправлена на сервер');
-  //   } else {
-  //     // Обработка ошибки при отправке фотографии на сервер
-  //     print('Ошибка при отправке фотографии на сервер');
-  //   }
-  // }
+  void _tryImgg(int id) async {
+    final url = Uri.parse('http://example.com/upload'); // Замените на свой URL сервера
+    final request = http.MultipartRequest('POST', url);
+    request.files.add(await http.MultipartFile.fromPath('image',  selectedImage!.path)); //заполняем фото человека
+    request.fields['id'] = id.toString(); //заполняем id
 
+    final response = await request.send(); //отправляем
+
+    if (response.statusCode == 200) {
+      // Обработка успешной отправки фотографии на сервер
+      print('Фотография успешно отправлена на сервер');
+    } else {
+      // Обработка ошибки при отправке фотографии на сервер
+      print('Ошибка при отправке фотографии на сервер');
+    }
+    Timer.periodic(Duration(seconds: 20), (timer) {
+      // Вызов другой функции
+      print("запрос в базу о готовности"); //если готово вызываем функцию downloadImage()
+    });
+  }
+
+
+
+  void downloadImage() async {
+    final response = await http.get(Uri.parse('http://example.com/download'));
+
+    if (response.statusCode == 200) {
+      // Обработка успешного получения фотографии с сервера
+      final bytes = response.bodyBytes;
+      //для преобразования байтов в XFile
+      Directory tempDir = await getTemporaryDirectory();
+      String tempPath = tempDir.path;
+      String tempFilePath = '$tempPath/temp_file.bin';
+
+      File tempFile = File(tempFilePath);
+      await tempFile.writeAsBytes(bytes);
+      setState(() {
+        selectedImage = XFile(tempFilePath);
+      });
+
+      // Дальнейшая обработка полученных байтов фотографии
+      print('Фотография успешно получена с сервера');
+    } else {
+      // Обработка ошибки при получении фотографии с сервера
+      print('Ошибка при получении фотографии с сервера');
+    }
+  }
 
 
   @override
@@ -124,7 +137,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: 2,
                   ),
                 ),
-                child: selectedImage != null ? Image.network(selectedImage!.path) : const Text('Photo not selected'),
+                child: selectedImage != null ? Image.network(selectedImage!.path, fit:BoxFit.scaleDown) : const Text('Photo not selected'),
+                // child: selectedImage != null ? Image.network(selectedImage!.path, fit:BoxFit.scaleDown) : const Text('Photo not selected'),
               ),
               Container(
                 margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 60),
