@@ -2,7 +2,8 @@ package image
 
 import (
 	"context"
-	"mobile_project/virtual-try-on-app/backend/internal/repositories/image"
+
+	"virtual-try-on-app/internal/repositories/image"
 )
 
 type ImageRepository interface {

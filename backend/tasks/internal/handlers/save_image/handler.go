@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 
 	"virtual-try-on-app/internal/handlers"
@@ -19,7 +20,7 @@ func New(imageService ImageService) Handler {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", handlers.ContentTypeJSON)
+	w.Header().Set("Content-Type", "image/png")
 	defer func() { _ = r.Body.Close() }()
 
 	if r.Method != http.MethodPost {
@@ -33,8 +34,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request HandlerRequest
-	err := json.NewDecoder(r.Body).Decode(&request)
+	imageBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(HandlerResponse{
@@ -45,24 +45,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	response := h.handle(r.Context(), request)
+	response := h.handle(r.Context(), imageBytes)
 	w.WriteHeader(response.Status)
 	_ = json.NewEncoder(w).Encode(response)
 
 	return
 }
 
-func (h Handler) handle(ctx context.Context, request HandlerRequest) HandlerResponse {
-	if request.Image == nil {
-		return HandlerResponse{
-			Status: http.StatusBadRequest,
-			Error: &HandlerResponseError{
-				Message: "image shouldn't be empty",
-			},
-		}
-	}
-
-	imageID, err := h.imageService.Save(ctx, request.Image)
+func (h Handler) handle(ctx context.Context, imageBytes []byte) HandlerResponse {
+	imageID, err := h.imageService.Save(ctx, imageBytes)
 	if err != nil {
 		if errors.Is(err, image.ErrNotPNGImage) {
 			return HandlerResponse{

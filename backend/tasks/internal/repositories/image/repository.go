@@ -74,9 +74,9 @@ func (r Repository) Get(ctx context.Context, imageID string) (Image, error) {
 	}
 
 	imageConfig, err := png.DecodeConfig(f)
-	if err != nil {
-		return Image{}, fmt.Errorf("error while getting image header: %w", err)
-	}
+	//if err != nil {
+	//	return Image{}, fmt.Errorf("error while getting image header: %w", err)
+	//}
 
 	return Image{
 		Bytes:  imageBytes,

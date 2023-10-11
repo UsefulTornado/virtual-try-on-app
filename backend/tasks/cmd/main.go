@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
 	handlerGetImage "virtual-try-on-app/internal/handlers/get_image"
 	handlerSaveImage "virtual-try-on-app/internal/handlers/save_image"
 	imageRepository "virtual-try-on-app/internal/repositories/image"
@@ -26,8 +25,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/get_image", getImageHandler)
-	mux.Handle("/save_image", saveImageHandler)
+	mux.Handle("/api/get_image", getImageHandler)
+	mux.Handle("/api/save_image", saveImageHandler)
 
 	server := http.Server{
 		Addr:    ":" + "1101",

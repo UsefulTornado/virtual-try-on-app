@@ -53,16 +53,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) handle(ctx context.Context, request HandlerRequest) HandlerResponse {
-	if request.ImageID == "" {
+	if request.PersonImageID == "" || request.ClothesImageID != nil && *request.ClothesImageID == "" {
 		return HandlerResponse{
 			Status: http.StatusBadRequest,
 			Error: &HandlerResponseError{
-				Message: "image_id shouldn't be empty",
+				Message: "id shouldn't be empty",
 			},
 		}
 	}
 
-	imageBytes, err := h.imageService.Get(ctx, request.ImageID)
+	personImageBytes, err := h.imageService.Get(ctx, request.PersonImageID)
+	clothesImageBytes, err := h.imageService.Get(ctx, *request.ClothesImageID)
 	if err != nil {
 		if errors.Is(err, image.ErrImageNotExist) {
 			return HandlerResponse{
@@ -80,5 +81,5 @@ func (h Handler) handle(ctx context.Context, request HandlerRequest) HandlerResp
 		}
 	}
 
-	return HandlerResponse{Status: http.StatusOK, Image: imageBytes}
+	return HandlerResponse{Status: http.StatusOK, PersonImage: personImageBytes, ClothesImage: clothesImageBytes}
 }
