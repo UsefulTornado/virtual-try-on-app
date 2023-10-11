@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
 
 void main() {
   runApp(const MyApp());
@@ -54,6 +57,41 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  // загрузка фото из галереи
+
+  XFile? selectedImage;
+  Future<void> pickImageFromGallery() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
+    if (pickedImage != null) {
+      setState(() {
+        selectedImage = pickedImage;
+      });
+    }
+  }
+
+  // Future<void> uploadImage() async {
+  //   if (selectedImage == null) {
+  //     // Обработка случая, когда фотография не выбрана
+  //     return;
+  //   }
+  //
+  //   final url = Uri.parse('http://example.com/upload'); // Замените на свой URL сервера
+  //   final request = http.MultipartRequest('POST', url);
+  //   request.files.add(await http.MultipartFile.fromPath('image', selectedImage!.path));
+  //
+  //   final response = await request.send();
+  //
+  //   if (response.statusCode == 200) {
+  //     // Обработка успешной отправки фотографии на сервер
+  //     print('Фотография успешно отправлена на сервер');
+  //   } else {
+  //     // Обработка ошибки при отправке фотографии на сервер
+  //     print('Ошибка при отправке фотографии на сервер');
+  //   }
+  // }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: 2,
                   ),
                 ),
-                child: const Text('Photo'),
+                child: selectedImage != null ? Image.network(selectedImage!.path) : const Text('Photo not selected'),
               ),
               Container(
                 margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 60),
@@ -101,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: ButtonStyle(
                     foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                   ),
-                  onPressed: _uploadPhoto,
+                  onPressed:  pickImageFromGallery, //_uploadPhoto,
                   child: const Text('Upload Photo'),
                 ),
               ),
