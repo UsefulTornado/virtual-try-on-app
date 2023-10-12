@@ -131,28 +131,28 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
 
-    // Создание тела запроса с изображением в байтовом виде
-    Map<String, dynamic> requestBody = {
-      'image': base64Encode(imageBytes as List<int>),
-    };
-
-    // Отправка POST-запроса на сервер
-    http.Response response = await http.post(
-      Uri.parse('[host:port]/api/style_image'),
-      body: jsonEncode(requestBody),
-      headers: {'Content-Type': 'image/png'},
-    );
-
-    // Обработка ответа от сервера
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseData = jsonDecode(response.body);
-      setState(() {
-        personId = responseData['id'];
-      });
-      print('Изображение успешно отправлено на сервер. ID изображения: $personId');
-    } else {
-      print('Ошибка при отправке изображения на сервер');
-    }
+    // // Создание тела запроса с изображением в байтовом виде
+    // Map<String, dynamic> requestBody = {
+    //   'image': base64Encode(imageBytes as List<int>),
+    // };
+    //
+    // // Отправка POST-запроса на сервер
+    // http.Response response = await http.post(
+    //   Uri.parse('[host:port]/api/style_image'),
+    //   body: jsonEncode(requestBody),
+    //   headers: {'Content-Type': 'image/png'},
+    // );
+    //
+    // // Обработка ответа от сервера
+    // if (response.statusCode == 200) {
+    //   Map<String, dynamic> responseData = jsonDecode(response.body);
+    //   setState(() {
+    //     personId = responseData['id'];
+    //   });
+    //   print('Изображение успешно отправлено на сервер. ID изображения: $personId');
+    // } else {
+    //   print('Ошибка при отправке изображения на сервер');
+    // }
   }
 
   @override
@@ -191,7 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Container(
                 margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 60),
-                height: MediaQuery.of(context).size.height / 30,
+                height: MediaQuery.of(context).size.height / 20,
                 // decoration: BoxDecoration(
                 //   border: Border.all(
                 //     color: Colors.red,
@@ -209,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Container(
                 width: MediaQuery.of(context).size.width * 14/15,
                 height: MediaQuery.of(context).size.height * 15/60,
-                // alignment: Alignment.center,
+                alignment: Alignment.center,
                 margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 60),
                 // decoration: BoxDecoration(
                 //   border: Border.all(
@@ -223,42 +223,44 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemCount: 3,
                   itemBuilder: (context, index) {
                     return Row(
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width * 11/45,
-                          height: MediaQuery.of(context).size.height * 6/30,
-                          // decoration: BoxDecoration(
-                          //   border: Border.all(
-                          //     color: Colors.red,
-                          //     width: 2,
-                          //   ),
-                          // ),
-                          // child: Image.asset("assets/images/img$index.jpg", fit:BoxFit.scaleDown),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: MediaQuery.of(context).size.width * 11/45,
-                                height: MediaQuery.of(context).size.height * 4/30,
-                                // decoration: BoxDecoration(
-                                //   border: Border.all(
-                                //     color: Colors.green,
-                                //     width: 2,
-                                //   ),
-                                // ),
-                                child: Image.asset("assets/images/img$index.jpg", fit:BoxFit.scaleDown),
-                              ),
-                              TextButton(
-                                style: ButtonStyle(
-                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Container(
+                            // width: MediaQuery.of(context).size.width * 11/45,
+                            // height: MediaQuery.of(context).size.height * 6/30,
+                            // decoration: BoxDecoration(
+                            //   border: Border.all(
+                            //     color: Colors.red,
+                            //     width: 2,
+                            //   ),
+                            // ),
+                            // child: Image.asset("assets/images/img$index.jpg", fit:BoxFit.scaleDown),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  width: MediaQuery.of(context).size.width * 11/45,
+                                  height: MediaQuery.of(context).size.height * 4/30,
+                                  // decoration: BoxDecoration(
+                                  //   border: Border.all(
+                                  //     color: Colors.green,
+                                  //     width: 2,
+                                  //   ),
+                                  // ),
+                                  child: Image.asset("assets/images/img$index.jpg", fit:BoxFit.scaleDown),
                                 ),
-                                onPressed:(){
-                                  _tryImg(index);
-                                },
-                                child: const Text('Try'),
-                              ),
-                            ],
+                                TextButton(
+                                  style: ButtonStyle(
+                                    foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                                  ),
+                                  onPressed:(){
+                                    _tryImg(index);
+                                  },
+                                  child: const Text('Try'),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                         SizedBox(width: MediaQuery.of(context).size.width * 3/45), // Расстояние между контейнерами
                       ],
                     );
