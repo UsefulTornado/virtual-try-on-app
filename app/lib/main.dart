@@ -74,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
     request.body = jsonEncode(requestBody);
 
     var response = await request.send();
-    var responseBody = response.stream.toString();
+    var responseBody = await response.stream.bytesToString();
 
 
     // Handle the response
@@ -159,15 +159,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var response = await request.send();
 
-    var responseBody = response.stream.toString();
-    // var responseBody = await response.stream.toBytes();
+    // var responseBody = await response.stream.toString();
+    var responseBody = await response.stream.bytesToString();
 
     // Handle the response
     if (response.statusCode == 200) {
       print('Image uploaded successfully');
       print('Response body: $responseBody');
-      print(personId);
       personId = responseBody;
+      print(personId);
+      print('------------');
     } else {
       print('Image upload failed');
       print('Response status: ${response.statusCode}');
