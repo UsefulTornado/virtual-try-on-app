@@ -7,7 +7,7 @@ import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
-import 'package:image/image.dart' as img;
+// import 'package:image/image.dart' as img;
 
 
 void main() {
@@ -41,7 +41,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  void _tryImg(int index) { // временно, чтобы ничего не ломалось
+  void _tryImg(String index) { // временно, чтобы ничего не ломалось
     print(index);
   }
 
@@ -54,27 +54,41 @@ class _MyHomePageState extends State<MyHomePage> {
     };
 
     // Отправка POST-запроса на сервер
-    http.Response response = await http.post(
-      Uri.parse('http://127.0.0.1:1101/api/style_image'),
-      body: jsonEncode(requestBody),
-    );
+    // http.Response response = await http.post(
+    //   Uri.parse('http://127.0.0.1:1101/api/style_image'),
+    //   body: jsonEncode(requestBody),
+    // );
 
-    // Обработка ответа от сервера
+    // // Обработка ответа от сервера
+    // if (response.statusCode == 200) {
+    //   Map<String, dynamic> responseData = jsonDecode(response.body);
+    //   setState(() {
+    //     newPersonId = responseData['id'];
+    //   });
+    //   print('Изображение успешно отправлено на сервер. ID сгенерированного изображения: $newPersonId');
+    // } else {
+    //   print('Ошибка при отправке изображения на сервер');
+    // }
+
+    var request = http.Request('post', Uri.parse('http://127.0.0.1:1101/api/style_image'));
+    request.body = jsonEncode(requestBody);
+
+    var response = await request.send();
+    var responseBody = response.stream.toString();
+
+
+    // Handle the response
     if (response.statusCode == 200) {
-      Map<String, dynamic> responseData = jsonDecode(response.body);
-      setState(() {
-        newPersonId = responseData['id'];
-      });
-      print('Изображение успешно отправлено на сервер. ID сгенерированного изображения: $newPersonId');
+      print('Image uploaded successfully');
+      print('Response body: $responseBody');
+      newPersonId = responseBody;
+      downloadImage(newPersonId);
     } else {
-      print('Ошибка при отправке изображения на сервер');
+      print('Image upload failed');
+      print('Response status: ${response.statusCode}');
+      print('Response body: $responseBody');
     }
 
-
-    Timer.periodic(Duration(seconds: 20), (timer) {
-      // Вызов другой функции
-      print("запрос в базу о готовности"); //если готово вызываем функцию downloadImage(newPersonId)
-    });
   }
 
 
@@ -85,22 +99,35 @@ class _MyHomePageState extends State<MyHomePage> {
       'id': newPersonId,
     };
 
-    // Отправка POST-запроса на сервер
-    http.Response response = await http.post(
-      Uri.parse('http://192.168.1.78:1101/api/get_image'),
-      body: jsonEncode(requestBody),
-    );
+    var request = http.Request('post', Uri.parse('http://127.0.0.1:8000/api/get_image'));
+    request.body = jsonEncode(requestBody);
 
-    // Обработка ответа от сервера
+    var response = await request.send();
+    var responseBody = response.stream.toBytes() as Uint8List; //фиг знает будет ли работать
+
+    // Handle the response
     if (response.statusCode == 200) {
-      final modifiedImageBytes = response.bodyBytes;
+      print('Image uploaded successfully');
+      print('Response body: $responseBody');
       setState(() {
-        containerImage = Image.memory(modifiedImageBytes);
+        containerImage = Image.memory(responseBody);
       });
-      print('Изображение успешно обработано');
     } else {
-      print('Ошибка при получении');
+      print('Image upload failed');
+      print('Response status: ${response.statusCode}');
+      print('Response body: $responseBody');
     }
+
+    // // Обработка ответа от сервера
+    // if (response.statusCode == 200) {
+    //   final modifiedImageBytes = response.bodyBytes;
+    //   setState(() {
+    //     containerImage = Image.memory(modifiedImageBytes);
+    //   });
+    //   print('Изображение успешно обработано');
+    // } else {
+    //   print('Ошибка при получении');
+    // }
   }
 
   Uint8List imageBytes = Uint8List(0);
@@ -116,27 +143,31 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
 
-    for (var i = 0; i < 8; ++i) {
-      print(imageBytes[i]);
-    }
+    // for (var i = 0; i < 8; ++i) {
+    //   print(imageBytes[i]);
+    // }
+    //
+    // // Создание тела запроса с изображением в байтовом виде
+    // Map<String, dynamic> requestBody = {
+    //   'image': imageBytes,
+    // };
+    // print('------------------');
 
-    // Создание тела запроса с изображением в байтовом виде
-    Map<String, dynamic> requestBody = {
-      'image': imageBytes,
-    };
-    print('------------------');
-    var request = http.Request('post', Uri.parse('http://192.168.1.78:1101/api/save_image'));
+    var request = http.Request('post', Uri.parse('http://127.0.0.1:1101/api/save_image'));
     request.bodyBytes = imageBytes;
     request.headers["Content-Type"] = "image/png";
 
     var response = await request.send();
 
-    var responseBody = await response.stream.toBytes();
+    var responseBody = response.stream.toString();
+    // var responseBody = await response.stream.toBytes();
 
     // Handle the response
     if (response.statusCode == 200) {
       print('Image uploaded successfully');
       print('Response body: $responseBody');
+      print(personId);
+      personId = responseBody;
     } else {
       print('Image upload failed');
       print('Response status: ${response.statusCode}');
@@ -206,7 +237,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                                 ),
                                 onPressed:(){
-                                  _tryImg(index);
+                                  _tryImg(index.toString());
                                 },
                                 child: const Text('Try'),
                               ),
