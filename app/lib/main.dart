@@ -3,9 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
 
 
 void main() {
@@ -70,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Отправка POST-запроса на сервер
     http.Response response = await http.post(
-      Uri.parse('[host:port]/api/style_image'),
+      Uri.parse('http://127.0.0.1:1101/api/style_image'),
       body: jsonEncode(requestBody),
     );
 
@@ -102,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Отправка POST-запроса на сервер
     http.Response response = await http.post(
-      Uri.parse(' [host:port]/api/get_image'),
+      Uri.parse('http://127.0.0.1:1101/api/get_image'),
       body: jsonEncode(requestBody),
     );
 
@@ -118,31 +120,90 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Uint8List? imageBytes;
+  Uint8List imageBytes = Uint8List(0);
   Image? containerImage;
   String personId = '';
   void pickImageFromGallery1() async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
     if (pickedImage != null) {
-      final imageBytes = await pickedImage.readAsBytes();
+      imageBytes = await pickedImage.readAsBytes();
       setState(() {
         containerImage = Image.memory(imageBytes);
       });
     }
+    // bool isValidFile(Uint8List data) {
+    //   final input = InputBuffer(data, bigEndian: true);
+    //   final bytes = input.readBytes(8);
+    //   const pngHeader = [137, 80, 78, 71, 13, 10, 26, 10];
+    //   for (var i = 0; i < 8; ++i) {
+    //     if (bytes[i] != pngHeader[i]) {
+    //       return false;
+    //     }
+    //   }
+    //   return true;
+    // }
+    for (var i = 0; i < 8; ++i) {
+      print(imageBytes[i]);
+    }
 
-    // // Создание тела запроса с изображением в байтовом виде
-    // Map<String, dynamic> requestBody = {
-    //   'image': base64Encode(imageBytes as List<int>),
-    // };
-    //
-    // // Отправка POST-запроса на сервер
-    // http.Response response = await http.post(
-    //   Uri.parse('[host:port]/api/style_image'),
+    // File('test_image_save.png').writeAsBytesSync(imageBytes);
+    // print(imageBytes);
+    // Создание тела запроса с изображением в байтовом виде
+    Map<String, dynamic> requestBody = {
+      'image': imageBytes,
+    };
+    print('------------------');
+    // print(requestBody['image']);
+
+    // for (var i = 0; i < 8; ++i) {
+    //   print(jsonDecode(jsonEncode(requestBody['image']))[i]);
+    // }
+
+    // print(jsonEncode(requestBody));
+    // Отправка POST-запроса на сервер
+    // http.post(
+    //   Uri.parse('http://127.0.0.1:1101/api/save_image'),
     //   body: jsonEncode(requestBody),
     //   headers: {'Content-Type': 'image/png'},
-    // );
-    //
+    // ).then((response) {
+    //   print("Response status: ${response.statusCode}");
+    //   print("Response body: ${response.body}");
+    // }).catchError((error){
+    //   print("Error: $error");
+    // });
+    // img.Image? image = img.decodeImage(imageBytes);
+
+    // Create a new byte buffer to store the PNG image
+    // var pngBytes = img.encodePng(image!);
+
+
+    // Create a multipart request
+    var request = http.MultipartRequest('POST', Uri.parse('http://127.0.0.1:1101/api/save_image'));
+    // var imagePart = http.MultipartFile.fromBytes('image', pngBytes, filename: 'image.png');
+    // request.files.add(imagePart);
+
+    // Add the image bytes as a part of the request
+    var imagePart = http.MultipartFile.fromBytes('image', imageBytes, filename: 'image.jpg');
+    request.files.add(imagePart);
+
+    request.headers['Content-Type'] = 'image/jpg';
+    // request.headers['Content-Type'] = 'multipart/form-data';
+    // Send the request
+    var response = await request.send();
+    var responseBody = await response.stream.bytesToString();
+
+    // Handle the response
+    if (response.statusCode == 200) {
+      print('Image uploaded successfully');
+      print('Response body: $responseBody');
+    } else {
+      print('Image upload failed');
+      print('Response status: ${response.statusCode}');
+      print('Response body: $responseBody');
+    }
+
+
     // // Обработка ответа от сервера
     // if (response.statusCode == 200) {
     //   Map<String, dynamic> responseData = jsonDecode(response.body);
