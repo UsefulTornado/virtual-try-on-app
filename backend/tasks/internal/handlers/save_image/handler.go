@@ -21,7 +21,7 @@ func New(imageService ImageService) Handler {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", "application/json")
 	defer func() { _ = r.Body.Close() }()
 
 	if r.Method != http.MethodPost {
