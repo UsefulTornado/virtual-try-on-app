@@ -53,7 +53,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) handle(ctx context.Context, request HandlerRequest) HandlerResponse {
-	if request.PersonImageID == "" || request.ClothesImageID != nil && *request.ClothesImageID == "" {
+	if request.PersonImageID == "" {
 		return HandlerResponse{
 			Status: http.StatusBadRequest,
 			Error: &HandlerResponseError{

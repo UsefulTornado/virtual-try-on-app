@@ -1,3 +1,3 @@
 package main
 
-const imageDirectory = ""
+const imageDirectory = "/Users/prkonstantinova/mobile_project/"

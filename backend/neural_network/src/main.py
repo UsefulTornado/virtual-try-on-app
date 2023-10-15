@@ -13,6 +13,7 @@ sys.path.append("..")
 app = FastAPI()
 vton = VirtualTryOn()
 
+
 get_image_URL = "http://127.0.0.1:1101/api/get_image"
 save_image_URL = "http://127.0.0.1:1101/api/save_image"
 
