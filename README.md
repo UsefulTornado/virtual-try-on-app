@@ -30,9 +30,9 @@ flutter doctor
 
 Далее выполните следующие команды:
 ```text
-cd backend/tasks/cmd
+cd backend/tasks
 go mod tidy
-go run main.go
+go run ./cmd
 ```
 
 ### Запуск сервиса для взаимодействия с  нейронной сетью
