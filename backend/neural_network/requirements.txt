@@ -2,8 +2,10 @@ fastapi
 accelerate>=0.16.0
 diffusers
 torchvision
-transformers>=4.25.1
+transformers==4.32.1
 numpy
 opencv-contrib-python
 Pillow
 requests
+opencv-contrib-python
+uvicorn
