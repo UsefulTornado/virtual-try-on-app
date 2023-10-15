@@ -17,9 +17,7 @@ import (
 )
 
 func main() {
-	const ImageDirectory = "/Users/prkonstantinova/mobile_project"
-
-	imageRepo := imageRepository.New(ImageDirectory)
+	imageRepo := imageRepository.New(imageDirectory)
 
 	imageService := serviceImage.New(imageRepo)
 
