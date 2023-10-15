@@ -63,7 +63,12 @@ func (h Handler) handle(ctx context.Context, request HandlerRequest) HandlerResp
 	}
 
 	personImageBytes, err := h.imageService.Get(ctx, request.PersonImageID)
-	clothesImageBytes, err := h.imageService.Get(ctx, *request.ClothesImageID)
+
+	var clothesImageBytes []byte
+	if request.ClothesImageID != nil {
+		clothesImageBytes, err = h.imageService.Get(ctx, *request.ClothesImageID)
+	}
+
 	if err != nil {
 		if errors.Is(err, image.ErrImageNotExist) {
 			return HandlerResponse{

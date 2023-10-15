@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
 	handlerGetImage "virtual-try-on-app/internal/handlers/get_image"
 	handlerSaveImage "virtual-try-on-app/internal/handlers/save_image"
 	imageRepository "virtual-try-on-app/internal/repositories/image"
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	imageRepo := imageRepository.New(ImageDirectory)
+	imageRepo := imageRepository.New(imageDirectory)
 
 	imageService := serviceImage.New(imageRepo)
 
@@ -29,14 +30,14 @@ func main() {
 	mux.Handle("/api/save_image", saveImageHandler)
 
 	server := http.Server{
-		Addr:    ":" + "1101",
+		Addr:    "0.0.0.0:" + "1101",
 		Handler: mux,
 	}
 
 	go func() {
 		fmt.Println("server started")
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			fmt.Println("error while starting server")
+			fmt.Println("error while starting server", err)
 		}
 	}()
 

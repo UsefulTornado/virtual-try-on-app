@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -20,7 +21,7 @@ func New(imageService ImageService) Handler {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", "application/json")
 	defer func() { _ = r.Body.Close() }()
 
 	if r.Method != http.MethodPost {
@@ -31,6 +32,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Message: handlers.ErrMsgMethodNotAllowed,
 			},
 		})
+		fmt.Println(handlers.ErrMsgMethodNotAllowed)
 		return
 	}
 
@@ -43,6 +45,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Message: handlers.ErrMsgBadRequest,
 			},
 		})
+		fmt.Println(handlers.ErrMsgBadRequest)
 		return
 	}
 	response := h.handle(r.Context(), imageBytes)
@@ -56,13 +59,16 @@ func (h Handler) handle(ctx context.Context, imageBytes []byte) HandlerResponse 
 	imageID, err := h.imageService.Save(ctx, imageBytes)
 	if err != nil {
 		if errors.Is(err, image.ErrNotPNGImage) {
+			fmt.Println("image should be png")
 			return HandlerResponse{
 				Status: http.StatusBadRequest,
 				Error: &HandlerResponseError{
-					Message: "image doesn't exist",
+					Message: "image should be png",
 				},
 			}
 		}
+
+		fmt.Println(handlers.ErrMsgInternaL)
 		return HandlerResponse{
 			Status: http.StatusInternalServerError,
 			Error: &HandlerResponseError{
