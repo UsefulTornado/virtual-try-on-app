@@ -2,8 +2,8 @@
 ## Запуск приложения
 ### Установка `flutter`
 
-Перейти по [ссылке](https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.13.7-stable.tar.xz) для установки исходников (для `linux`).
-Для другой операционной системы исходники можно найти по [ссылке](https://docs.flutter.dev/get-started/install)
+Перейдите по [ссылке](https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.13.7-stable.tar.xz) для установки исходников (под ОС `linux`).
+Для другой операционной системы исходники можно найти по [ссылке](https://docs.flutter.dev/get-started/install).
 
 Извлеките загруженный файл в выбранное вами место.
 ```text
