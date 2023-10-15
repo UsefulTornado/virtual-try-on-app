@@ -41,9 +41,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  void _tryImg(String index) { // временно, чтобы ничего не ломалось
-    print(index);
-  }
+  // void _tryImg(String index) { // временно, чтобы ничего не ломалось
+  //   print(index);
+  // }
 
   void _tryImg1(String clothesId) async {
     String newPersonId = '';
@@ -238,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                                 ),
                                 onPressed:(){
-                                  _tryImg(index.toString());
+                                  _tryImg1(index.toString());
                                 },
                                 child: const Text('Try'),
                               ),
