@@ -3,21 +3,15 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:http_parser/http_parser.dart';
-import 'dart:io';
-import 'dart:async';
-import 'package:path_provider/path_provider.dart';
-// import 'package:image/image.dart' as img;
-
+import 'package:tmp_app/consts.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const TryOnApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TryOnApp extends StatelessWidget {
+  const TryOnApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -40,99 +34,61 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-  // void _tryImg(String index) { // временно, чтобы ничего не ломалось
-  //   print(index);
-  // }
+  String personId = '';
 
   void _tryImg1(String clothesId) async {
-    String newPersonId = '';
-    // Создание тела запроса с изображением в байтовом виде
     Map<String, dynamic> requestBody = {
       'person_image_id': personId,
       'clothes_image_id': clothesId,
     };
 
-    // Отправка POST-запроса на сервер
-    // http.Response response = await http.post(
-    //   Uri.parse('http://127.0.0.1:1101/api/style_image'),
-    //   body: jsonEncode(requestBody),
-    // );
-
-    // // Обработка ответа от сервера
-    // if (response.statusCode == 200) {
-    //   Map<String, dynamic> responseData = jsonDecode(response.body);
-    //   setState(() {
-    //     newPersonId = responseData['id'];
-    //   });
-    //   print('Изображение успешно отправлено на сервер. ID сгенерированного изображения: $newPersonId');
-    // } else {
-    //   print('Ошибка при отправке изображения на сервер');
-    // }
-
-    var request = http.Request('post', Uri.parse('http://127.0.0.1:1101/api/style_image'));
+    var request = http.Request(post, Uri.parse(styleImageURL));
+    request.headers[contentType] = applicationJSON;
     request.body = jsonEncode(requestBody);
 
     var response = await request.send();
     var responseBody = await response.stream.bytesToString();
 
-
-    // Handle the response
     if (response.statusCode == 200) {
       print('Image uploaded successfully');
       print('Response body: $responseBody');
-      newPersonId = responseBody;
-      downloadImage(newPersonId);
-    } else {
-      print('Image upload failed');
-      print('Response status: ${response.statusCode}');
-      print('Response body: $responseBody');
+      String styledPersonID = responseBody;
+      downloadImage(styledPersonID);
+      return;
     }
 
+    print('Image upload failed');
+    print('Response status: ${response.statusCode}');
+    print('Response body: $responseBody');
   }
 
-
-
-  void downloadImage(String newPersonId) async {
-    // Создание тела запроса с изображением в байтовом виде
+  void downloadImage(String imageID) async {
     Map<String, dynamic> requestBody = {
-      'id': newPersonId,
+      'id': imageID,
     };
 
-    var request = http.Request('post', Uri.parse('http://127.0.0.1:8000/api/get_image'));
+    var request = http.Request(post, Uri.parse(getImageURL));
     request.body = jsonEncode(requestBody);
 
     var response = await request.send();
-    var responseBody = response.stream.toBytes() as Uint8List; //фиг знает будет ли работать
+    var responseBody = response.stream.toBytes() as Uint8List;
 
-    // Handle the response
     if (response.statusCode == 200) {
       print('Image uploaded successfully');
       print('Response body: $responseBody');
       setState(() {
         containerImage = Image.memory(responseBody);
       });
-    } else {
-      print('Image upload failed');
-      print('Response status: ${response.statusCode}');
-      print('Response body: $responseBody');
+      return;
     }
 
-    // // Обработка ответа от сервера
-    // if (response.statusCode == 200) {
-    //   final modifiedImageBytes = response.bodyBytes;
-    //   setState(() {
-    //     containerImage = Image.memory(modifiedImageBytes);
-    //   });
-    //   print('Изображение успешно обработано');
-    // } else {
-    //   print('Ошибка при получении');
-    // }
+    print('Image upload failed');
+    print('Response status: ${response.statusCode}');
+    print('Response body: $responseBody');
   }
 
   Uint8List imageBytes = Uint8List(0);
   Image? containerImage;
-  String personId = '';
   void pickImageFromGallery1() async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery); //ImageSource.camera
@@ -143,37 +99,24 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
 
-    // for (var i = 0; i < 8; ++i) {
-    //   print(imageBytes[i]);
-    // }
-    //
-    // // Создание тела запроса с изображением в байтовом виде
-    // Map<String, dynamic> requestBody = {
-    //   'image': imageBytes,
-    // };
-    // print('------------------');
-
-    var request = http.Request('post', Uri.parse('http://127.0.0.1:1101/api/save_image'));
+    var request = http.Request(post, Uri.parse(saveImageURL));
     request.bodyBytes = imageBytes;
-    request.headers["Content-Type"] = "image/png";
+    request.headers[contentType] = imagePNG;
 
     var response = await request.send();
+    var responseBodyStr = await response.stream.bytesToString();
+    var responseBody = jsonDecode(responseBodyStr);
 
-    // var responseBody = await response.stream.toString();
-    var responseBody = await response.stream.bytesToString();
-
-    // Handle the response
     if (response.statusCode == 200) {
       print('Image uploaded successfully');
-      print('Response body: $responseBody');
-      personId = responseBody;
-      print(personId);
-      print('------------');
-    } else {
-      print('Image upload failed');
-      print('Response status: ${response.statusCode}');
-      print('Response body: $responseBody');
+      personId = responseBody["image_id"];
+      print('personId: $personId');
+      return;
     }
+
+    print('Image upload failed');
+    print('Response status: ${response.statusCode}');
+    print('Response body: $responseBodyStr');
   }
 
   @override
