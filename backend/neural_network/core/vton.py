@@ -66,7 +66,9 @@ class VirtualTryOn:
         clothes_description: str,
     ) -> Image.Image:
         return self.inpainting_pipeline(
-            prompt=clothes_description, image=person_image, mask_image=mask_image
+            prompt=f"a human in {clothes_description}",
+            image=person_image,
+            mask_image=mask_image,
         ).images[0]
 
     def __call__(
