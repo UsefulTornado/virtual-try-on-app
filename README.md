@@ -5,7 +5,7 @@
 Перейдите по [ссылке](https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.13.7-stable.tar.xz) для установки исходников (под ОС `linux`).
 Для другой операционной системы исходники можно найти по [ссылке](https://docs.flutter.dev/get-started/install).
 
-Извлеките загруженный файл в выбранное вами место.
+Извлеките загруженный файл в выбранное вами место:
 ```text
 cd ~/development
 tar xf ~/Downloads/flutter_linux_3.13.7-stable.tar.xz
@@ -16,7 +16,7 @@ tar xf ~/Downloads/flutter_linux_3.13.7-stable.tar.xz
 export PATH="$PATH:`pwd`/flutter/bin"
 ```
 
-Подтвердите установку с помощью flutter doctor
+Подтвердите установку с помощью flutter doctor:
 ```text
 flutter doctor
 ```
